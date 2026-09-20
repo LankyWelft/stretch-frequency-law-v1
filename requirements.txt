@@ -2,3 +2,5 @@ numpy
 scipy
 networkx
 torch
+rdkit
+scikit-learn

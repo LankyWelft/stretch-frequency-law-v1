@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 """V7-R14 外源验证: VIBFREQ1295 (独立实验/CCSD(T)-F12c benchmark) CHONF 子集.
 从 SMILES 用 rdkit 建图, 跑 R1 伸缩定律, 与金标准谐振频率对比."""
-import csv, re, math
+import csv, re, math, os, json
 import numpy as np
 from rdkit import Chem
 from rdkit.Chem import AllChem
+
+HERE = os.path.dirname(os.path.abspath(__file__))
 
 R_V6={1:0.9166,6:1.119,7:1.073,8:1.034,9:1.002}
 MASS={1:1.008,6:12.011,7:14.007,8:15.999,9:18.998}
@@ -26,16 +28,11 @@ def parse_desc(d):
     if b==1: bo=1
     return (a,b,bo)
 
-rows=list(csv.DictReader(open('VIBFREQ1295_Data.csv',encoding='latin-1')))
-rg=np.load('/home/user/Doubao/chats/38438738864945410/V7-R10/records_aug.npz')
-_zi=np.rint(rg['zi']).astype(int);_zj=np.rint(rg['zj']).astype(int);_bo=np.rint(rg['bo']).astype(int)
-_nu0=rg['nu0'];_nuref=rg['nuref']
-from collections import defaultdict as _dd
-_fx=_dd(list)
-for i in range(len(_zi)):
-    k=(min(_zi[i],_zj[i]),max(_zi[i],_zj[i]),_bo[i])
-    if _nu0[i]>0:_fx[k].append(_nuref[i]/_nu0[i])
-B2={k:float(np.median(v)) for k,v in _fx.items()}
+rows=list(csv.DictReader(open(os.path.join(HERE,'VIBFREQ1295_Data.csv'),encoding='latin-1')))
+# B2 bond-type multiplicative factors, frozen from the QM9 training set and
+# shipped as a small JSON so the external validation needs no large derived array.
+_b2=json.load(open(os.path.join(HERE,'b2_bondtype_factors.json')))
+B2={tuple(int(x) for x in k.split('-')):float(v) for k,v in _b2.items()}
 print("B2 键型数:",len(B2))
 allowed={'C','H','O','N','F'}
 def elems(f): return set(re.findall(r'[A-Z][a-z]?',f))
@@ -96,6 +93,5 @@ for nm in sorted(g):
     print(f"{nm:>6} {len(xs):>4} {np.mean(rc)*100:>17.2f}% {np.mean(re_)*100:>15.2f}%")
 print(f"{'总体':>6} {len(tot_c):>4} {np.mean(tot_c)*100:>17.2f}% {np.mean(tot_e)*100:>15.2f}%")
 # 保存
-import json
-json.dump(recs,open('r14_ext_vibfreq.json','w'),default=float)
+json.dump(recs,open(os.path.join(HERE,'r14_ext_vibfreq.json'),'w'),default=float)
 print("\nsaved r14_ext_vibfreq.json")

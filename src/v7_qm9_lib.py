@@ -3,19 +3,30 @@ V7 QM9 shared library (Linux cloud, reproduced from the Windows R10 pipeline).
 Constants are identical to the Windows run so numbers reproduce exactly.
 """
 import os, math
+import glob
 import numpy as np
 
-# ---- paths (Linux cloud) ----
-BASE = '/home/user/Doubao/chats/38438738864945410/V7-R10'
-QM9_DIR = os.path.join(BASE, 'dsgdb9nsd', 'dsgdb9nsd')  # tar extracts to dsgdb9nsd/dsgdb9nsd/*.xyz
-BAD_IDS_FILE = os.path.join(BASE, 'bad_qm9.txt')
+# ---- portable paths ----
+# Repository layout:
+#   repo/qm9_data/dsgdb9nsd/dsgdb9nsd/*.xyz   (QM9, downloaded via scripts/download_qm9.sh)
+#   repo/data/bad_qm9.txt, repo/data/match_prior.json   (shipped small files)
+# Override the data location with the V7_QM9_BASE environment variable.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.dirname(_HERE)
+BASE = os.environ.get('V7_QM9_BASE', os.path.join(REPO_ROOT, 'qm9_data'))
 
-# if extraction layout differs, auto-detect: find the dir holding *.xyz
-if not os.path.isdir(QM9_DIR):
-    for cand in [os.path.join(BASE, 'dsgdb9nsd'), BASE]:
-        if any(True for _ in __import__('glob').glob(os.path.join(cand, '*.xyz'))[:1]):
-            QM9_DIR = cand
-            break
+
+def _find_qm9_dir(base):
+    for cand in (os.path.join(base, 'dsgdb9nsd', 'dsgdb9nsd'),
+                 os.path.join(base, 'dsgdb9nsd'), base):
+        if glob.glob(os.path.join(cand, '*.xyz')):
+            return cand
+    return os.path.join(base, 'dsgdb9nsd', 'dsgdb9nsd')
+
+
+QM9_DIR = _find_qm9_dir(BASE)  # tar extracts to dsgdb9nsd/dsgdb9nsd/*.xyz
+BAD_IDS_FILE = os.path.join(REPO_ROOT, 'data', 'bad_qm9.txt')
+PRIOR_FILE = os.path.join(REPO_ROOT, 'data', 'match_prior.json')
 
 SYM = {1: 'H', 6: 'C', 7: 'N', 8: 'O', 9: 'F'}
 ZMAP = {v: k for k, v in SYM.items()}

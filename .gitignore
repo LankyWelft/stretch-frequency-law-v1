@@ -3,17 +3,21 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 
-# Large derived / raw datasets (regenerate from public sources; see README)
+# Large raw / derived QM9 data (regenerate from public sources; see README)
+qm9_data/
 *.npz
 *.tar.bz2
 *.tar.gz
 *.parquet
 *.zip
-data/
-*.tmp
-*.log
+c2_mpnn_weights_retrained.pt
+
+# Generated validation output
+external_validation/r14_ext_vibfreq.json
 
 # OS / editor
 .DS_Store
 .vscode/
 .idea/
+*.tmp
+*.log

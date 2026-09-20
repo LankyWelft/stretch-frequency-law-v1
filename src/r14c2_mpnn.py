@@ -7,8 +7,8 @@ import numpy as np, networkx as nx
 import torch, torch.nn as nn
 from scipy.optimize import linear_sum_assignment
 import sys
-sys.path.insert(0,'/home/user/Doubao/chats/38438738864945410/V7-R10')
-from v7_qm9_lib import BASE, QM9_DIR, BAD_IDS_FILE, SYM, MASS, R_V6, reduced_mass, r1_nu, parse_xyz
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from v7_qm9_lib import BASE, QM9_DIR, BAD_IDS_FILE, PRIOR_FILE, SYM, MASS, R_V6, reduced_mass, r1_nu, parse_xyz
 
 torch.manual_seed(0); np.random.seed(0)
 LIMIT=int(os.environ.get('R14_LIMIT','0'))
@@ -26,7 +26,7 @@ def bo_dist(za,zb,d):
     if d<t2: return 2
     if d<t1: return 1
     return 0
-PRIOR=json.load(open(os.path.join(BASE,'match_prior.json'))) if os.path.exists(os.path.join(BASE,'match_prior.json')) else {}
+PRIOR=json.load(open(PRIOR_FILE)) if os.path.exists(PRIOR_FILE) else {}
 def _mlab(za,zb,o):
     sym={2:'=',3:'#'}.get(o,'-')
     return f"{SYM[min(za,zb)]}{sym}{SYM[max(za,zb)]}"
@@ -239,8 +239,8 @@ for ep in range(EPOCHS):
 
 em,lab,xm,mref,xref,xelem=evaluate()
 lab=np.array(lab)
-torch.save(net.state_dict(),'c2_mpnn_weights.pt')
-print('saved c2_mpnn_weights.pt')
+torch.save(net.state_dict(),os.path.join(BASE,'c2_mpnn_weights_retrained.pt'))
+print('saved',os.path.join(BASE,'c2_mpnn_weights_retrained.pt'))
 # 保存 parity 数据
 np.savez(os.path.join(BASE,'r14c2_pred.npz'),
     mm_ref=mref, mm_pred=em*mref, mm_lab=lab,

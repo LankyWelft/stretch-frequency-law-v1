@@ -6,10 +6,9 @@ import os, numpy as np, math
 from sklearn.linear_model import RidgeCV
 from sklearn.preprocessing import StandardScaler
 import sys
-sys.path.insert(0,'/home/user/Doubao/chats/38438738864945410/V7-R10')
-from v7_qm9_lib import SYM, R_V6
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from v7_qm9_lib import BASE, SYM, R_V6
 
-BASE='/home/user/Doubao/chats/38438738864945410/V7-R10'
 d=np.load(os.path.join(BASE,'records_aug.npz'))
 gid=d['gid']; zi=d['zi'].astype(int); zj=d['zj'].astype(int); bo=d['bo'].astype(int)
 fam=d['fam'].astype(int); nu0=d['nu0'].astype(float); nuref=d['nuref'].astype(float)
