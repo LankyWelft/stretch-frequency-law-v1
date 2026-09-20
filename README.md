@@ -74,10 +74,14 @@ python src/r14c2_mpnn.py         # Tables 4–5: 3-layer edge-conditioned MPNN
 python src/r14d_active.py        # Fig. 7 : active-learning strategy simulation
 ```
 
-To point the pipeline at an existing QM9 copy elsewhere, set the data root:
+To use a QM9 copy you already have instead of downloading, point the data root
+at a directory containing either the extracted `*.xyz` files directly or a
+`dsgdb9nsd/` folder of them (both layouts, and a nested `dsgdb9nsd/dsgdb9nsd/`,
+are auto-detected):
 
 ```bash
-export V7_QM9_BASE=/path/to/dir_holding_dsgdb9nsd
+export V7_QM9_BASE=/path/to/qm9     # contains *.xyz  or  dsgdb9nsd/*.xyz
+python scripts/build_records_aug.py
 ```
 
 The small shipped files `data/bad_qm9.txt` (unusable molecule ids) and

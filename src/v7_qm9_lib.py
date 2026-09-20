@@ -7,24 +7,29 @@ import glob
 import numpy as np
 
 # ---- portable paths ----
-# Repository layout:
-#   repo/qm9_data/dsgdb9nsd/dsgdb9nsd/*.xyz   (QM9, downloaded via scripts/download_qm9.sh)
-#   repo/data/bad_qm9.txt, repo/data/match_prior.json   (shipped small files)
-# Override the data location with the V7_QM9_BASE environment variable.
+# QM9 geometries are looked up under the data root in any of these layouts:
+#   <root>/*.xyz                              (what scripts/download_qm9.sh makes;
+#                                              the official tar stores *.xyz at top level)
+#   <root>/dsgdb9nsd/*.xyz
+#   <root>/dsgdb9nsd/dsgdb9nsd/*.xyz
+# Point <root> at your own QM9 copy with V7_QM9_BASE; the default is repo/qm9_data.
+# Small shipped files always come from the repo:
+#   repo/data/bad_qm9.txt, repo/data/match_prior.json
 _HERE = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(_HERE)
 BASE = os.environ.get('V7_QM9_BASE', os.path.join(REPO_ROOT, 'qm9_data'))
 
 
 def _find_qm9_dir(base):
-    for cand in (os.path.join(base, 'dsgdb9nsd', 'dsgdb9nsd'),
-                 os.path.join(base, 'dsgdb9nsd'), base):
+    for cand in (base,
+                 os.path.join(base, 'dsgdb9nsd'),
+                 os.path.join(base, 'dsgdb9nsd', 'dsgdb9nsd')):
         if glob.glob(os.path.join(cand, '*.xyz')):
             return cand
-    return os.path.join(base, 'dsgdb9nsd', 'dsgdb9nsd')
+    return base
 
 
-QM9_DIR = _find_qm9_dir(BASE)  # tar extracts to dsgdb9nsd/dsgdb9nsd/*.xyz
+QM9_DIR = _find_qm9_dir(BASE)
 BAD_IDS_FILE = os.path.join(REPO_ROOT, 'data', 'bad_qm9.txt')
 PRIOR_FILE = os.path.join(REPO_ROOT, 'data', 'match_prior.json')
 
