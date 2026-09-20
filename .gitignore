@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Large derived / raw datasets (regenerate from public sources; see README)
+*.npz
+*.tar.bz2
+*.tar.gz
+*.parquet
+*.zip
+data/
+*.tmp
+*.log
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
