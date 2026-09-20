@@ -70,7 +70,10 @@ for mol,modes in bymol.items():
         if kb is None: skipped+=1; continue
         pred=best_pred(*kb)
         if pred is None: skipped+=1; continue
-        pred=pred*B2.get(kb,1.0)
+        # B2 factors are keyed by the undirected (min Z, max Z, BO) tuple; normalize
+        # the parsed key so X-H (e.g. O-H -> (8,1,1)) and N#C -> (7,6,3) lookups hit.
+        bkey=(min(kb[0],kb[1]),max(kb[0],kb[1]),kb[2])
+        pred=pred*B2.get(bkey,1.0)
         try: ccsd=float(r['CCSD(T)-F12c_Freqs']); exp=float(r['ExpFreq_New'])
         except: continue
         recs.append(dict(mol=mol,desc=desc,key=kb,pred=pred,ccsd=ccsd,exp=exp))

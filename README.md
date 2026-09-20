@@ -46,16 +46,35 @@ python external_validation/V7-R14_ext_vibfreq.py
 
 # (2) external VIBFREQ1295 validation, R1 + locked MPNN Δ-layer (no retraining)
 python external_validation/run_mpnn_external.py
+
+# (3) pre-registered external label audit (paper SI S10); read-only, no model
+python external_validation/audit_external_labels.py
 ```
 
-Command (2) builds molecular graphs from SMILES with RDKit (no 3-D coordinates, no
-QM9-derived files), loads the locked weights, and self-checks against the shipped
-per-mode table `examples/si_modes.csv`. Expected output: 74 molecules / 307 modes,
-self-check mean |Δ| ≈ 0.02%, overall relMAE **11.82%** vs CCSD(T)-F12c, with
-**C=O 1.75%**, **O–H 1.76%**, C–H 12.96%. The large overall number is honest, not a
-failure: the external set contains heavy-atom single bonds the MPNN was never
-supervised on, and symmetry-split C–H modes; the strongly-bonded, assignable modes
-transfer tightly. Command (1) gives overall **12.99%**, C=O **1.53%**.
+Commands (1)–(2) build molecular graphs from SMILES with RDKit (no 3-D coordinates,
+no QM9-derived files), load the locked factors/weights, and self-check against the
+shipped per-mode table `examples/si_modes.csv`. Expected results vs CCSD(T)-F12c over
+all 307 released modes (74 molecules):
+
+| model | all 307 (as released) | audited 294 |
+|---|---|---|
+| R1 raw | 13.56% | 8.34% |
+| R1 + B2 | **11.88%** (C=O 1.53%, O–H 1.75%, N–H 4.35%) | 6.43% |
+| R1 + MPNN | **11.81%** (C=O 1.75%, O–H 1.76%) | **6.31%** |
+
+Command (3) re-derives, from the released label and CCSD frequency alone (two
+model-independent physical-range rules, fixed before inspecting any prediction), the
+**13 mis-labeled modes** shipped inside VIBFREQ1295 itself (e.g. a 1518 cm⁻¹ CH₃
+deformation labeled "C–H stretch"; high-frequency C–H stretches labeled "C=C
+stretch"). It reproduces every SI S10 number: after excluding those 13 rows the
+audited aggregate is 6.31%, C–H falls 12.96%→**2.38%** and C=C 9.74%→**3.89%**, while
+every supervised single-mode type is unchanged. The removable log-ratio variance
+rises from 10.2% to **46.0%** overall and from 42.9% to **82.1%** on the supervised
+types, matching the QM9 value of 84.1%. All 307 rows are retained in
+`examples/si_modes.csv` (flagged in the `audit_flag` column); no unfavorable mode is
+deleted. The remaining audited error is structural (heavy-atom single bonds the MPNN
+was never supervised on, plus a small XHₙ symmetry-splitting floor of ~1.7%), not a
+failure of transfer.
 
 ## Full QM9 reproduction (Tables 2–5, Fig. 7)
 
@@ -120,9 +139,10 @@ data/bad_qm9.txt, data/match_prior.json # shipped small support files
 weights/c2_mpnn_weights.pt              # locked MPNN weights (~280 KB)
 external_validation/V7-R14_ext_vibfreq.py   # R1 + B2 on VIBFREQ1295
 external_validation/run_mpnn_external.py    # R1 + MPNN on VIBFREQ1295 (self-contained)
+external_validation/audit_external_labels.py # pre-registered label audit (SI S10), read-only
 external_validation/b2_bondtype_factors.json# frozen B2 multiplicative factors
 external_validation/VIBFREQ1295_Data.csv    # external benchmark subset (C/H/O/N/F)
-examples/si_modes.csv, si_molecules.csv     # per-mode / per-molecule SI tables
+examples/si_modes.csv, si_molecules.csv     # per-mode (307, audit_flag column) / per-molecule SI tables
 ```
 
 ## Requirements
