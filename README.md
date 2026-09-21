@@ -1,12 +1,12 @@
-# A Closed-Form Three-Feature Law for Molecular Stretching Frequencies
+# An Analytic Three-Feature Scaling Law for Molecular Stretching Vibrational Frequencies
 
 Lightweight, **O(N)** prediction of molecular **stretching** vibrational frequencies,
 together with a small Δ-learning correction layer. This repository accompanies the
 manuscript
 
-> *"A Closed-Form Three-Feature Law for Molecular Stretching Frequencies with a
-> Lightweight Δ-Learning Correction Layer"* — Yue Lin, *J. Chem. Theory Comput.*
-> (submitted).
+> *"An Analytic Three-Feature Scaling Law with a Lightweight Δ-Learning Correction for
+> Molecular Stretching Vibrational Frequencies: Validation against CCSD(T) and Gas-Phase
+> Experiment"* — Yue Lin, *Spectrochimica Acta Part A* (submitted).
 
 The analytic layer needs no quantum-chemical calculation, coordinate optimization,
 or training data at inference. The optional Δ-layer learns only the small, systematic
@@ -49,6 +49,9 @@ python external_validation/run_mpnn_external.py
 
 # (3) pre-registered external label audit (paper SI S10); read-only, no model
 python external_validation/audit_external_labels.py
+
+# (4) experimental gas-phase FUNDAMENTALS benchmark (paper Sec. 4.7 / SI S11)
+python external_validation/experimental_gasphase_benchmark.py
 ```
 
 Commands (1)–(2) build molecular graphs from SMILES with RDKit (no 3-D coordinates,
@@ -75,6 +78,24 @@ types, matching the QM9 value of 84.1%. All 307 rows are retained in
 deleted. The remaining audited error is structural (heavy-atom single bonds the MPNN
 was never supervised on, plus a small XHₙ symmetry-splitting floor of ~1.7%), not a
 failure of transfer.
+
+### (4) Comparison with experimental gas-phase fundamentals
+
+Command (4) scores the same frozen models against the measured gas-phase **fundamental**
+wavenumbers (`nu_exp` in `examples/si_modes.csv`, compiled by VIBFREQ1295 from NIST
+CCCBDB and the primary literature), reusing the exact bond-type normalization, audit
+rules and relMAE of command (3). Aggregate relMAE on the 294 audited modes:
+
+| reference | R1 raw | R1+B2 | R1+MPNN |
+|---|---|---|---|
+| experimental fundamentals | 7.54% | **7.10%** | 7.39% |
+| CCSD(T)-F12c harmonics | 8.34% | 6.43% | **6.31%** |
+
+The CCSD(T) harmonics themselves lie **4.04%** above the measured fundamentals on the
+same modes (the harmonic-to-fundamental anharmonic gap), which is the floor for any
+harmonic-trained model; on supervised types R1+MPNN reaches 5.14% against experiment
+(4.61% for X–H; C=O 3.51%, C–H 3.87%). The complete per-bond-type matrix (all bond
+types, as-released 307 and audited 294) is printed by the script and tabulated in SI S11.
 
 ## Full QM9 reproduction (Tables 2–5, Fig. 7)
 
@@ -109,7 +130,7 @@ The derived `records_aug.npz` (~94 MB) and raw geometries are regenerated, not
 committed. A full MPNN retrain writes `c2_mpnn_weights_retrained.pt` to the data
 root and never overwrites the locked `weights/c2_mpnn_weights.pt`.
 
-### Reproduced numbers (B3LYP/6-31G(2df,p), 130,831 molecules, 717,839 assignable modes)
+### Reproduced numbers (B3LYP/6-31G(2df,p), 130,815 molecules, 1,435,692 assigned modes)
 
 | stage | relMAE |
 |---|---|
@@ -140,6 +161,7 @@ weights/c2_mpnn_weights.pt              # locked MPNN weights (~280 KB)
 external_validation/V7-R14_ext_vibfreq.py   # R1 + B2 on VIBFREQ1295
 external_validation/run_mpnn_external.py    # R1 + MPNN on VIBFREQ1295 (self-contained)
 external_validation/audit_external_labels.py # pre-registered label audit (SI S10), read-only
+external_validation/experimental_gasphase_benchmark.py # NIST/CCCBDB fundamentals benchmark (Sec. 4.7/SI S11)
 external_validation/b2_bondtype_factors.json# frozen B2 multiplicative factors
 external_validation/VIBFREQ1295_Data.csv    # external benchmark subset (C/H/O/N/F)
 examples/si_modes.csv, si_molecules.csv     # per-mode (307, audit_flag column) / per-molecule SI tables
