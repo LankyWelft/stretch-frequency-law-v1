@@ -1,7 +1,5 @@
 # An Analytic Three-Feature Scaling Law for Molecular Stretching Vibrational Frequencies
 
-[![Reproducibility](https://github.com/LankyWelft/stretch-frequency-law-v1/actions/workflows/ci.yml/badge.svg)](https://github.com/LankyWelft/stretch-frequency-law-v1/actions/workflows/ci.yml)
-
 Lightweight, **O(N)** prediction of molecular **stretching** vibrational frequencies,
 together with a small Δ-learning correction layer. This repository accompanies the
 manuscript
